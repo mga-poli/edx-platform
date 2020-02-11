@@ -91,6 +91,34 @@ class CourseSettingsEncoderTest(CourseTestCase):
         self.assertEqual(jsondetails['string'], 'string')
 
 
+class CourseAdvanceSettingViewTest(CourseTestCase, MilestonesTestCaseMixin):
+    """
+    Tests for testing AdvanceSettings View.
+    """
+
+    def setUp(self):
+        self.fullcourse = CourseFactory.create()
+        self.course_setting_url = get_url(self.course.id, 'advanced_settings_handler')
+        self.request = RequestFactory().request()
+
+    def test_mobile_field_available(self):
+        from mobile_api.models import IgnoreMobileAvailableFlagConfig
+
+        self.request.host = 'edx.org'
+        ignore_mobile = IgnoreMobileAvailableFlagConfig()
+        ignore_mobile.enabled = False
+        ignore_mobile.save()
+
+        response = self.client.get_html(self.course_setting_url)
+        self.assertEqual(b"Mobile Course Available" in response.content)
+
+        ignore_mobile.enabled = True
+        ignore_mobile.save()
+
+        response = self.client.get_html(self.course_setting_url)
+        self.assertNotEqual(b"Mobile Course Available" in response.content)
+
+
 @ddt.ddt
 class CourseDetailsViewTest(CourseTestCase, MilestonesTestCaseMixin):
     """
